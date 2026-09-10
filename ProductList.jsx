@@ -1,128 +1,105 @@
-import React from "react";
-import { useDispatch } from "react-redux";
-import { addItem } from "./CartSlice";
+import React, { useState } from "react";
+import "./ProductList.css";
 
-const plants = [
-  {
-    id: 1,
-    name: "Aloe Vera",
-    category: "Medicinal",
-    price: 15,
-    image:
-      "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    name: "Snake Plant",
-    category: "Indoor",
-    price: 20,
-    image:
-      "https://images.unsplash.com/photo-1593482892290-f54927ae1bb7?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    name: "Peace Lily",
-    category: "Indoor",
-    price: 18,
-    image:
-      "https://images.unsplash.com/photo-1593691509543-c55fb32e5cee?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 4,
-    name: "Money Plant",
-    category: "Indoor",
-    price: 12,
-    image:
-      "https://images.unsplash.com/photo-1614594575839-3b4f1d1a0a6d?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 5,
-    name: "Rose Plant",
-    category: "Outdoor",
-    price: 22,
-    image:
-      "https://images.unsplash.com/photo-1496062031456-07b8f162a322?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 6,
-    name: "Lavender",
-    category: "Outdoor",
-    price: 16,
-    image:
-      "https://images.unsplash.com/photo-1499002238440-d264edd596ec?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 7,
-    name: "Spider Plant",
-    category: "Indoor",
-    price: 14,
-    image:
-      "https://images.unsplash.com/photo-1572688484438-313a6e50c333?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 8,
-    name: "Basil Plant",
-    category: "Herbs",
-    price: 10,
-    image:
-      "https://images.unsplash.com/photo-1618375569909-3c8616cf7733?auto=format&fit=crop&w=600&q=80",
-  },
-];
+function ProductList() {
+  const [cart, setCart] = useState({});
+  const [addedToCart, setAddedToCart] = useState({});
 
-const ProductList = () => {
-  const dispatch = useDispatch();
+  // Product categories array with requirements
+  const plantsArray = [
+    {
+      category: "Air Purifying Plants",
+      plants: [
+        {
+          name: "Snake Plant",
+          image: "https://cdn.pixabay.com/photo/2021/01/22/06/04/snake-plant-5939187_1280.jpg",
+          description: "Produces oxygen at night, improving air quality.",
+          cost: "$15"
+        },
+        {
+          name: "Spider Plant",
+          image: "https://cdn.pixabay.com/photo/2018/07/11/06/47/chlorophytum-3530413_1280.jpg",
+          description: "Filters formaldehyde and xylene from the air.",
+          cost: "$12"
+        }
+      ]
+    },
+    {
+      category: "Aromatic & Medicinal Plants",
+      plants: [
+        {
+          name: "Lavender",
+          image: "https://cdn.pixabay.com/photo/2017/07/14/20/05/lavender-2504870_1280.jpg",
+          description: "Calming scent, used in aromatherapy and soaps.",
+          cost: "$18"
+        },
+        {
+          name: "Aloe Vera",
+          image: "https://cdn.pixabay.com/photo/2018/04/02/18/10/aloe-vera-3284713_1280.jpg",
+          description: "Soothes burns and skin irritations naturally.",
+          cost: "$10"
+        }
+      ]
+    }
+  ];
 
-  const categories = [...new Set(plants.map((plant) => plant.category))];
+  // Calculate total items in cart for the badge counter
+  const calculateTotalQuantity = () => {
+    return Object.values(cart).reduce((total, qty) => total + qty, 0);
+  };
 
   const handleAddToCart = (plant) => {
-    dispatch(addItem(plant));
+    setCart((prevCart) => ({
+      ...prevCart,
+      [plant.name]: (prevCart[plant.name] || 0) + 1
+    }));
+
+    setAddedToCart((prev) => ({
+      ...prev,
+      [plant.name]: true
+    }));
   };
 
   return (
-    <div className="product-list-page">
-      <header className="product-header">
-        <h1>Paradise Nursery</h1>
-        <p>Beautiful plants for your home and garden</p>
-      </header>
+    <div className="product-grid-container">
+      {/* Navbar Section with Logo, Title, and Cart Badge */}
+      <nav className="navbar">
+        <div className="nav-brand">
+          <h2>Paradise Nursery</h2>
+        </div>
+        <div className="cart-icon-container">
+          <span className="cart-symbol">🛒</span>
+          <span className="cart-count">{calculateTotalQuantity()}</span>
+        </div>
+      </nav>
 
-      {categories.map((category) => (
-        <section className="product-category" key={category}>
-          <h2>{category} Plants</h2>
-
-          <div className="products-grid">
-            {plants
-              .filter((plant) => plant.category === category)
-              .map((plant) => (
-                <div className="product-card" key={plant.id}>
-                  <img
-                    src={plant.image}
-                    alt={plant.name}
-                    className="product-image"
-                  />
-
-                  <div className="product-info">
-                    <h3>{plant.name}</h3>
-
-                    <p className="product-category-name">
-                      {plant.category}
-                    </p>
-
-                    <p className="product-price">${plant.price}</p>
-
-                    <button
-                      className="add-to-cart"
-                      onClick={() => handleAddToCart(plant)}
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
+      {/* Main Product Catalog */}
+      <div className="product-list">
+        {plantsArray.map((categoryObj, index) => (
+          <div key={index} className="category-section">
+            <h2 className="category-title">{categoryObj.category}</h2>
+            <div className="plants-grid">
+              {categoryObj.plants.map((plant, pIndex) => (
+                <div key={pIndex} className="product-card">
+                  <img src={plant.image} alt={plant.name} className="product-image" />
+                  <h3 className="product-title">{plant.name}</h3>
+                  <p className="product-description">{plant.description}</p>
+                  <p className="product-cost">{plant.cost}</p>
+                  <button
+                    className={`add-to-cart-btn ${addedToCart[plant.name] ? "disabled" : ""}`}
+                    onClick={() => handleAddToCart(plant)}
+                    disabled={addedToCart[plant.name]}
+                  >
+                    {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}
+                  </button>
                 </div>
               ))}
+            </div>
           </div>
-        </section>
-      ))}
+        ))}
+      </div>
     </div>
   );
-};
+}
 
 export default ProductList;
