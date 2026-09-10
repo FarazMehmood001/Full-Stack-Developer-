@@ -2,183 +2,153 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addItem, removeItem, updateQuantity } from "./CartSlice";
 
-const products = [
-  {
-    id: 1,
-    name: "Aloe Vera",
-    category: "Medicinal",
-    price: 15,
-    image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 2,
-    name: "Snake Plant",
-    category: "Indoor",
-    price: 20,
-    image: "https://images.unsplash.com/photo-1593482892290-f54927ae1bb7?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 3,
-    name: "Peace Lily",
-    category: "Indoor",
-    price: 18,
-    image: "https://images.unsplash.com/photo-1593691509543-c55fb32e5cee?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 4,
-    name: "Rose Plant",
-    category: "Outdoor",
-    price: 22,
-    image: "https://images.unsplash.com/photo-1496062031456-07b8f162a322?auto=format&fit=crop&w=500&q=80",
-  },
-];
-
-const CartItem = () => {
+const CartItem = ({ onContinueShopping }) => {
   const dispatch = useDispatch();
-  const items = useSelector((state) => state.cart?.items || []);
+  const cart = useSelector((state) => state.cart?.items || []);
 
-  const increaseQuantity = (item) => {
+  const getPrice = (item) => {
+    const value = item.price ?? item.cost ?? 0;
+    return Number(String(value).replace(/[^0-9.]/g, "")) || 0;
+  };
+
+  const totalPlants = cart.reduce(
+    (total, item) => total + Number(item.quantity || 0),
+    0
+  );
+
+  const totalCost = cart.reduce(
+    (total, item) => total + getPrice(item) * Number(item.quantity || 0),
+    0
+  );
+
+  const handleIncrease = (item) => {
     dispatch(addItem(item));
   };
 
-  const decreaseQuantity = (item) => {
-    if (item.quantity > 1) {
-      dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }));
+  const handleDecrease = (item) => {
+    const quantity = Number(item.quantity || 0);
+
+    if (quantity > 1) {
+      dispatch(updateQuantity({ id: item.id, quantity: quantity - 1 }));
     } else {
       dispatch(removeItem(item.id));
     }
   };
 
-  const changeQuantity = (item, value) => {
-    const quantity = Math.max(1, parseInt(value, 10) || 1);
-    dispatch(updateQuantity({ id: item.id, quantity }));
+  const handleDelete = (item) => {
+    dispatch(removeItem(item.id));
   };
-
-  const removeProduct = (id) => {
-    dispatch(removeItem(id));
-  };
-
-  const cartTotal = items.reduce(
-    (total, item) => total + Number(item.price) * Number(item.quantity),
-    0
-  );
-
-  const totalItems = items.reduce(
-    (total, item) => total + Number(item.quantity),
-    0
-  );
 
   const handleContinueShopping = () => {
+    if (typeof onContinueShopping === "function") {
+      onContinueShopping();
+      return;
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCheckout = () => {
-    alert("Proceeding to checkout...");
+    alert("Coming Soon");
   };
 
   return (
-    <main className="shopping-cart-page">
+    <main className="cart-container" aria-label="Shopping Cart">
       <header className="cart-header">
         <h1>Shopping Cart</h1>
-        <p>Review and manage your Paradise Nursery plants.</p>
+        <p>
+          Total number of plants: <strong>{totalPlants}</strong>
+        </p>
+        <h2>Total Cart Amount: ${totalCost.toFixed(2)}</h2>
       </header>
 
-      <section className="cart-products" aria-label="Paradise Nursery products">
-        <h2>Paradise Nursery Plants</h2>
-        <div className="products-grid">
-          {products.map((product) => (
-            <article className="product-card" key={product.id}>
-              <img src={product.image} alt={product.name} className="product-image" />
-              <h3>{product.name}</h3>
-              <p>{product.category}</p>
-              <strong>${product.price.toFixed(2)}</strong>
-              <button type="button" onClick={() => dispatch(addItem(product))}>
-                Add to Cart
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
+      {cart.length === 0 ? (
+        <section className="empty-cart">
+          <h2>Your cart is empty</h2>
+          <p>Add plants from the product listing to see them here.</p>
+        </section>
+      ) : (
+        <section className="cart-items" aria-label="Cart items">
+          {cart.map((item) => {
+            const unitPrice = getPrice(item);
+            const itemTotal = unitPrice * Number(item.quantity || 0);
 
-      <section className="cart-content" aria-label="Shopping Cart">
-        {items.length === 0 ? (
-          <div className="empty-cart">
-            <h2>Your cart is empty</h2>
-            <p>Select a plant above to add it to your shopping cart.</p>
-          </div>
-        ) : (
-          <>
-            <div className="cart-items">
-              {items.map((item) => (
-                <article className="cart-item" key={item.id}>
-                  <img src={item.image} alt={item.name} className="cart-item-image" />
+            return (
+              <article className="cart-item" key={item.id ?? item.name}>
+                <img
+                  className="cart-item-image"
+                  src={item.image}
+                  alt={item.name}
+                />
 
-                  <div className="cart-item-details">
-                    <h2>{item.name}</h2>
-                    <p>{item.category}</p>
-                    <p>Unit Price: ${Number(item.price).toFixed(2)}</p>
-                  </div>
+                <div className="cart-item-details">
+                  <h2>{item.name}</h2>
+                  {item.category && <p>{item.category}</p>}
+                  <p className="cart-item-cost">
+                    Unit Price: ${unitPrice.toFixed(2)}
+                  </p>
 
-                  <div className="quantity-controls" aria-label={`${item.name} quantity controls`}>
+                  <div
+                    className="cart-item-quantity"
+                    aria-label={`${item.name} quantity controls`}
+                  >
                     <button
                       type="button"
-                      onClick={() => decreaseQuantity(item)}
+                      className="cart-item-button cart-item-button-dec"
+                      onClick={() => handleDecrease(item)}
                       aria-label={`Decrease ${item.name} quantity`}
                     >
                       −
                     </button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(event) => changeQuantity(item, event.target.value)}
-                      aria-label={`${item.name} quantity`}
-                    />
+
+                    <span className="cart-item-quantity-value">
+                      {item.quantity}
+                    </span>
+
                     <button
                       type="button"
-                      onClick={() => increaseQuantity(item)}
+                      className="cart-item-button cart-item-button-inc"
+                      onClick={() => handleIncrease(item)}
                       aria-label={`Increase ${item.name} quantity`}
                     >
                       +
                     </button>
                   </div>
 
-                  <div className="item-total">
-                    <span>Item Total</span>
-                    <strong>${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
-                  </div>
+                  <p className="cart-item-total">
+                    Total: ${itemTotal.toFixed(2)}
+                  </p>
 
                   <button
                     type="button"
-                    className="remove-item"
-                    onClick={() => removeProduct(item.id)}
+                    className="cart-item-delete"
+                    onClick={() => handleDelete(item)}
                   >
-                    Remove
+                    Delete
                   </button>
-                </article>
-              ))}
-            </div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
 
-            <aside className="cart-summary" aria-label="Cart Summary">
-              <h2>Cart Summary</h2>
-              <div className="summary-row">
-                <span>Total Items</span>
-                <span>{totalItems}</span>
-              </div>
-              <div className="summary-row total-row">
-                <span>Total Price</span>
-                <strong>${cartTotal.toFixed(2)}</strong>
-              </div>
+      <section className="cart-actions" aria-label="Cart actions">
+        <button
+          type="button"
+          className="continue-shopping-button"
+          onClick={handleContinueShopping}
+        >
+          Continue Shopping
+        </button>
 
-              <button type="button" className="continue-shopping" onClick={handleContinueShopping}>
-                Continue Shopping
-              </button>
-              <button type="button" className="checkout-button" onClick={handleCheckout}>
-                Checkout
-              </button>
-            </aside>
-          </>
-        )}
+        <button
+          type="button"
+          className="checkout-button"
+          onClick={handleCheckout}
+        >
+          Checkout
+        </button>
       </section>
     </main>
   );
