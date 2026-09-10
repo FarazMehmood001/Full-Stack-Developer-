@@ -2,22 +2,22 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addItem, removeItem, updateQuantity } from "./CartSlice";
 
+const products = [
+  { id: 1, name: "Aloe Vera", category: "Medicinal", price: 15, image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=500&q=80" },
+  { id: 2, name: "Snake Plant", category: "Indoor", price: 20, image: "https://images.unsplash.com/photo-1593482892290-f54927ae1bb7?auto=format&fit=crop&w=500&q=80" },
+  { id: 3, name: "Peace Lily", category: "Indoor", price: 18, image: "https://images.unsplash.com/photo-1593691509543-c55fb32e5cee?auto=format&fit=crop&w=500&q=80" },
+  { id: 4, name: "Rose Plant", category: "Outdoor", price: 22, image: "https://images.unsplash.com/photo-1496062031456-07b8f162a322?auto=format&fit=crop&w=500&q=80" },
+];
+
 const CartItem = () => {
   const dispatch = useDispatch();
   const items = useSelector((state) => state.cart?.items || []);
 
-  const increaseQuantity = (item) => {
-    dispatch(addItem(item));
-  };
+  const increaseQuantity = (item) => dispatch(addItem(item));
 
   const decreaseQuantity = (item) => {
     if (item.quantity > 1) {
-      dispatch(
-        updateQuantity({
-          id: item.id,
-          quantity: item.quantity - 1,
-        })
-      );
+      dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }));
     } else {
       dispatch(removeItem(item.id));
     }
@@ -32,102 +32,91 @@ const CartItem = () => {
     (total, item) => total + Number(item.price) * item.quantity,
     0
   );
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <main className="shopping-cart-page">
       <div className="cart-header">
         <h1>Shopping Cart</h1>
-        <p>Review your plants before checkout.</p>
+        <p>Paradise Nursery — select plants and manage your cart.</p>
       </div>
 
-      {items.length === 0 ? (
-        <section className="empty-cart">
-          <h2>Your cart is empty</h2>
-          <p>Add some beautiful plants from Paradise Nursery.</p>
-          <button onClick={() => (window.location.href = "#products")}>
-            Continue Shopping
-          </button>
-        </section>
-      ) : (
-        <section className="cart-content">
-          <div className="cart-items">
-            {items.map((item) => (
-              <article className="cart-item" key={item.id}>
-                <img src={item.image} alt={item.name} className="cart-item-image" />
+      <section className="cart-products">
+        <h2>Paradise Nursery Plants</h2>
+        <div className="products-grid">
+          {products.map((product) => (
+            <article className="product-card" key={product.id}>
+              <img src={product.image} alt={product.name} className="product-image" />
+              <h3>{product.name}</h3>
+              <p>{product.category}</p>
+              <strong>${product.price.toFixed(2)}</strong>
+              <button onClick={() => dispatch(addItem(product))}>Add to Cart</button>
+            </article>
+          ))}
+        </div>
+      </section>
 
-                <div className="cart-item-details">
-                  <h2>{item.name}</h2>
-                  <p>{item.category}</p>
-                  <strong>${Number(item.price).toFixed(2)}</strong>
-                </div>
-
-                <div className="quantity-controls">
-                  <button
-                    aria-label={`Decrease ${item.name} quantity`}
-                    onClick={() => decreaseQuantity(item)}
-                  >
-                    −
-                  </button>
-
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(event) =>
-                      changeQuantity(item, event.target.value)
-                    }
-                    aria-label={`${item.name} quantity`}
-                  />
-
-                  <button
-                    aria-label={`Increase ${item.name} quantity`}
-                    onClick={() => increaseQuantity(item)}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="item-total">
-                  ${(Number(item.price) * item.quantity).toFixed(2)}
-                </div>
-
-                <button
-                  className="remove-item"
-                  onClick={() => dispatch(removeItem(item.id))}
-                >
-                  Remove
-                </button>
-              </article>
-            ))}
+      <section className="cart-content">
+        {items.length === 0 ? (
+          <div className="empty-cart">
+            <h2>Your cart is empty</h2>
+            <p>Select a plant above to add it to your shopping cart.</p>
           </div>
+        ) : (
+          <>
+            <div className="cart-items">
+              {items.map((item) => (
+                <article className="cart-item" key={item.id}>
+                  <img src={item.image} alt={item.name} className="cart-item-image" />
+                  <div className="cart-item-details">
+                    <h2>{item.name}</h2>
+                    <p>{item.category}</p>
+                    <strong>${Number(item.price).toFixed(2)}</strong>
+                  </div>
 
-          <aside className="cart-summary">
-            <h2>Cart Summary</h2>
-            <div className="summary-row">
-              <span>Total Items</span>
-              <span>{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                  <div className="quantity-controls">
+                    <button onClick={() => decreaseQuantity(item)} aria-label={`Decrease ${item.name} quantity`}>−</button>
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(event) => changeQuantity(item, event.target.value)}
+                      aria-label={`${item.name} quantity`}
+                    />
+                    <button onClick={() => increaseQuantity(item)} aria-label={`Increase ${item.name} quantity`}>+</button>
+                  </div>
+
+                  <div className="item-total">
+                    ${(Number(item.price) * item.quantity).toFixed(2)}
+                  </div>
+
+                  <button className="remove-item" onClick={() => dispatch(removeItem(item.id))}>
+                    Remove
+                  </button>
+                </article>
+              ))}
             </div>
-            <div className="summary-row total-row">
-              <span>Total</span>
-              <strong>${cartTotal.toFixed(2)}</strong>
-            </div>
 
-            <button
-              className="continue-shopping"
-              onClick={() => (window.location.href = "#products")}
-            >
-              Continue Shopping
-            </button>
-
-            <button
-              className="checkout-button"
-              onClick={() => alert("Proceeding to checkout...")}
-            >
-              Checkout
-            </button>
-          </aside>
-        </section>
-      )}
+            <aside className="cart-summary">
+              <h2>Cart Summary</h2>
+              <div className="summary-row">
+                <span>Total Items</span>
+                <span>{totalItems}</span>
+              </div>
+              <div className="summary-row total-row">
+                <span>Total</span>
+                <strong>${cartTotal.toFixed(2)}</strong>
+              </div>
+              <button className="continue-shopping" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+                Continue Shopping
+              </button>
+              <button className="checkout-button" onClick={() => alert("Proceeding to checkout...")}>
+                Checkout
+              </button>
+            </aside>
+          </>
+        )}
+      </section>
     </main>
   );
 };
