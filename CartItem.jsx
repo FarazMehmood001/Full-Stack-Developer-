@@ -43,21 +43,23 @@ const CartItem = () => {
 
   const decreaseQuantity = (item) => {
     if (item.quantity > 1) {
-      dispatch(
-        updateQuantity({ id: item.id, quantity: item.quantity - 1 })
-      );
+      dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }));
     } else {
       dispatch(removeItem(item.id));
     }
   };
 
   const changeQuantity = (item, value) => {
-    const quantity = Math.max(1, Number(value) || 1);
+    const quantity = Math.max(1, parseInt(value, 10) || 1);
     dispatch(updateQuantity({ id: item.id, quantity }));
   };
 
+  const removeProduct = (id) => {
+    dispatch(removeItem(id));
+  };
+
   const cartTotal = items.reduce(
-    (total, item) => total + Number(item.price) * item.quantity,
+    (total, item) => total + Number(item.price) * Number(item.quantity),
     0
   );
 
@@ -66,30 +68,31 @@ const CartItem = () => {
     0
   );
 
+  const handleContinueShopping = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCheckout = () => {
+    alert("Proceeding to checkout...");
+  };
+
   return (
     <main className="shopping-cart-page">
       <header className="cart-header">
         <h1>Shopping Cart</h1>
-        <p>Review your selected Paradise Nursery plants.</p>
+        <p>Review and manage your Paradise Nursery plants.</p>
       </header>
 
-      <section className="cart-products" aria-label="Plant products">
+      <section className="cart-products" aria-label="Paradise Nursery products">
         <h2>Paradise Nursery Plants</h2>
         <div className="products-grid">
           {products.map((product) => (
             <article className="product-card" key={product.id}>
-              <img
-                src={product.image}
-                alt={product.name}
-                className="product-image"
-              />
+              <img src={product.image} alt={product.name} className="product-image" />
               <h3>{product.name}</h3>
               <p>{product.category}</p>
               <strong>${product.price.toFixed(2)}</strong>
-              <button
-                type="button"
-                onClick={() => dispatch(addItem(product))}
-              >
+              <button type="button" onClick={() => dispatch(addItem(product))}>
                 Add to Cart
               </button>
             </article>
@@ -97,22 +100,18 @@ const CartItem = () => {
         </div>
       </section>
 
-      <section className="cart-content" aria-label="Shopping cart items">
+      <section className="cart-content" aria-label="Shopping Cart">
         {items.length === 0 ? (
           <div className="empty-cart">
             <h2>Your cart is empty</h2>
-            <p>Add a plant above to start shopping.</p>
+            <p>Select a plant above to add it to your shopping cart.</p>
           </div>
         ) : (
           <>
             <div className="cart-items">
               {items.map((item) => (
                 <article className="cart-item" key={item.id}>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="cart-item-image"
-                  />
+                  <img src={item.image} alt={item.name} className="cart-item-image" />
 
                   <div className="cart-item-details">
                     <h2>{item.name}</h2>
@@ -120,7 +119,7 @@ const CartItem = () => {
                     <p>Unit Price: ${Number(item.price).toFixed(2)}</p>
                   </div>
 
-                  <div className="quantity-controls">
+                  <div className="quantity-controls" aria-label={`${item.name} quantity controls`}>
                     <button
                       type="button"
                       onClick={() => decreaseQuantity(item)}
@@ -132,9 +131,7 @@ const CartItem = () => {
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(event) =>
-                        changeQuantity(item, event.target.value)
-                      }
+                      onChange={(event) => changeQuantity(item, event.target.value)}
                       aria-label={`${item.name} quantity`}
                     />
                     <button
@@ -148,15 +145,13 @@ const CartItem = () => {
 
                   <div className="item-total">
                     <span>Item Total</span>
-                    <strong>
-                      ${(Number(item.price) * item.quantity).toFixed(2)}
-                    </strong>
+                    <strong>${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong>
                   </div>
 
                   <button
                     type="button"
                     className="remove-item"
-                    onClick={() => dispatch(removeItem(item.id))}
+                    onClick={() => removeProduct(item.id)}
                   >
                     Remove
                   </button>
@@ -164,7 +159,7 @@ const CartItem = () => {
               ))}
             </div>
 
-            <aside className="cart-summary">
+            <aside className="cart-summary" aria-label="Cart Summary">
               <h2>Cart Summary</h2>
               <div className="summary-row">
                 <span>Total Items</span>
@@ -175,19 +170,10 @@ const CartItem = () => {
                 <strong>${cartTotal.toFixed(2)}</strong>
               </div>
 
-              <button
-                type="button"
-                className="continue-shopping"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              >
+              <button type="button" className="continue-shopping" onClick={handleContinueShopping}>
                 Continue Shopping
               </button>
-
-              <button
-                type="button"
-                className="checkout-button"
-                onClick={() => alert("Proceeding to checkout...")}
-              >
+              <button type="button" className="checkout-button" onClick={handleCheckout}>
                 Checkout
               </button>
             </aside>
