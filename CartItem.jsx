@@ -1,156 +1,142 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addItem, removeItem, updateQuantity } from "./CartSlice";
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeItem, updateQuantity } from './CartSlice';
+import './CartItem.css';
 
 const CartItem = ({ onContinueShopping }) => {
+  const cart = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
-  const cart = useSelector((state) => state.cart?.items || []);
 
-  const getPrice = (item) => {
-    const value = item.price ?? item.cost ?? 0;
-    return Number(String(value).replace(/[^0-9.]/g, "")) || 0;
+  // Parse string cost "$15" into integer number 15
+  const parseCost = (costString) => {
+    return parseFloat(costString.replace('$', ''));
   };
 
-  const totalPlants = cart.reduce(
-    (total, item) => total + Number(item.quantity || 0),
-    0
-  );
-
-  const totalCost = cart.reduce(
-    (total, item) => total + getPrice(item) * Number(item.quantity || 0),
-    0
-  );
-
-  const handleIncrease = (item) => {
-    dispatch(addItem(item));
+  // Calculate total amount for all products in the cart
+  const calculateTotalAmount = () => {
+    return cart
+      .reduce((total, item) => total + parseCost(item.cost) * item.quantity, 0)
+      .toFixed(2);
   };
 
-  const handleDecrease = (item) => {
-    const quantity = Number(item.quantity || 0);
+  // Calculate total number of items in the cart
+  const calculateTotalQuantity = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
+  };
 
-    if (quantity > 1) {
-      dispatch(updateQuantity({ id: item.id, quantity: quantity - 1 }));
+  const handleContinueShopping = (e) => {
+    e.preventDefault();
+    if (onContinueShopping) {
+      onContinueShopping(e);
+    }
+  };
+
+  const handleIncrement = (item) => {
+    dispatch(
+      updateQuantity({
+        name: item.name,
+        quantity: item.quantity + 1,
+      })
+    );
+  };
+
+  const handleDecrement = (item) => {
+    if (item.quantity > 1) {
+      dispatch(
+        updateQuantity({
+          name: item.name,
+          quantity: item.quantity - 1,
+        })
+      );
     } else {
-      dispatch(removeItem(item.id));
+      dispatch(removeItem(item.name));
     }
   };
 
-  const handleDelete = (item) => {
-    dispatch(removeItem(item.id));
+  const handleRemove = (item) => {
+    dispatch(removeItem(item.name));
   };
 
-  const handleContinueShopping = () => {
-    if (typeof onContinueShopping === "function") {
-      onContinueShopping();
-      return;
-    }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  // Calculate subtotal for a single item
+  const calculateTotalCost = (item) => {
+    return (parseCost(item.cost) * item.quantity).toFixed(2);
   };
 
-  const handleCheckout = () => {
-    alert("Coming Soon");
+  const handleCheckoutShopping = (e) => {
+    alert('Functionality to be added for future reference');
   };
 
   return (
-    <main className="cart-container" aria-label="Shopping Cart">
-      <header className="cart-header">
-        <h1>Shopping Cart</h1>
-        <p>
-          Total number of plants: <strong>{totalPlants}</strong>
-        </p>
-        <h2>Total Cart Amount: ${totalCost.toFixed(2)}</h2>
-      </header>
+    <div className="cart-container">
+      <h2 style={{ color: 'black' }}>
+        Total Cart Amount: ${calculateTotalAmount()}
+      </h2>
+      <h4 style={{ color: 'gray' }}>
+        Total Items in Cart: {calculateTotalQuantity()}
+      </h4>
 
-      {cart.length === 0 ? (
-        <section className="empty-cart">
-          <h2>Your cart is empty</h2>
-          <p>Add plants from the product listing to see them here.</p>
-        </section>
-      ) : (
-        <section className="cart-items" aria-label="Cart items">
-          {cart.map((item) => {
-            const unitPrice = getPrice(item);
-            const itemTotal = unitPrice * Number(item.quantity || 0);
-
-            return (
-              <article className="cart-item" key={item.id ?? item.name}>
-                <img
-                  className="cart-item-image"
-                  src={item.image}
-                  alt={item.name}
-                />
-
-                <div className="cart-item-details">
-                  <h2>{item.name}</h2>
-                  {item.category && <p>{item.category}</p>}
-                  <p className="cart-item-cost">
-                    Unit Price: ${unitPrice.toFixed(2)}
-                  </p>
-
-                  <div
-                    className="cart-item-quantity"
-                    aria-label={`${item.name} quantity controls`}
-                  >
-                    <button
-                      type="button"
-                      className="cart-item-button cart-item-button-dec"
-                      onClick={() => handleDecrease(item)}
-                      aria-label={`Decrease ${item.name} quantity`}
-                    >
-                      −
-                    </button>
-
-                    <span className="cart-item-quantity-value">
-                      {item.quantity}
-                    </span>
-
-                    <button
-                      type="button"
-                      className="cart-item-button cart-item-button-inc"
-                      onClick={() => handleIncrease(item)}
-                      aria-label={`Increase ${item.name} quantity`}
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <p className="cart-item-total">
-                    Total: ${itemTotal.toFixed(2)}
-                  </p>
-
+      <div>
+        {cart.length === 0 ? (
+          <p className="empty-cart-msg">Your cart is empty.</p>
+        ) : (
+          cart.map((item) => (
+            <div className="cart-item" key={item.name}>
+              <img
+                className="cart-item-image"
+                src={item.image}
+                alt={item.name}
+              />
+              <div className="cart-item-details">
+                <div className="cart-item-name">{item.name}</div>
+                <div className="cart-item-cost">{item.cost}</div>
+                <div className="cart-item-quantity">
                   <button
-                    type="button"
-                    className="cart-item-delete"
-                    onClick={() => handleDelete(item)}
+                    className="cart-item-button cart-item-button-dec"
+                    onClick={() => handleDecrement(item)}
                   >
-                    Delete
+                    -
+                  </button>
+                  <span className="cart-item-quantity-value">
+                    {item.quantity}
+                  </span>
+                  <button
+                    className="cart-item-button cart-item-button-inc"
+                    onClick={() => handleIncrement(item)}
+                  >
+                    +
                   </button>
                 </div>
-              </article>
-            );
-          })}
-        </section>
-      )}
+                <div className="cart-item-total">
+                  Subtotal: ${calculateTotalCost(item)}
+                </div>
+                <button
+                  className="cart-item-delete"
+                  onClick={() => handleRemove(item)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
-      <section className="cart-actions" aria-label="Cart actions">
+      <div style={{ marginTop: '20px' }} className="continue_shopping_btn">
         <button
-          type="button"
-          className="continue-shopping-button"
-          onClick={handleContinueShopping}
+          className="get-started-button"
+          onClick={(e) => handleContinueShopping(e)}
         >
           Continue Shopping
         </button>
-
+        <br />
         <button
-          type="button"
-          className="checkout-button"
-          onClick={handleCheckout}
+          className="get-started-button1"
+          onClick={(e) => handleCheckoutShopping(e)}
         >
           Checkout
         </button>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 };
 
