@@ -1,50 +1,23 @@
-import React from "react";
+import React from 'react';
+import './AboutUs.css';
 
-const AboutUs = () => {
+function AboutUs() {
   return (
-    <main className="about-us">
-      <section>
-        <h1>About Us</h1>
-        <h2>Paradise Nursery</h2>
+    <div className="about-us-container">
+      <h1 className="about-us-heading">About Us</h1>
+      <p className="about-us-description">
+        Welcome to Paradise Nursery, your premier destination for high-quality houseplants and gardening supplies. Our mission is to bridge the gap between nature and modern indoor living spaces.
+      </p>
 
-        <p>
-          Paradise Nursery is a plant and gardening company dedicated to
-          helping customers bring the beauty of nature into their homes and
-          outdoor spaces.
-        </p>
+      <p className="about-us-content">
+        At Paradise Nursery, we offer a carefully curated selection of air-purifying, aromatic, and medicinal plants designed to transform your home into a lush green haven. Whether you are an experienced gardener or just starting your plant care journey, our team is dedicated to providing healthy plants, expert advice, and exceptional service.
+      </p>
 
-        <h2>Our Company</h2>
-        <p>
-          We offer a carefully selected collection of indoor, outdoor,
-          medicinal, and herb plants. Our goal is to make it easy for plant
-          lovers to discover, select, and purchase healthy and beautiful
-          plants.
-        </p>
-
-        <h2>Our Mission</h2>
-        <p>
-          Our mission is to make plant shopping simple, convenient, and
-          enjoyable while encouraging people to create greener and healthier
-          living spaces.
-        </p>
-
-        <h2>What We Provide</h2>
-        <ul>
-          <li>Indoor plants for homes and offices</li>
-          <li>Outdoor plants for gardens and spaces</li>
-          <li>Medicinal plants with traditional uses</li>
-          <li>Herbs for everyday gardening</li>
-          <li>Easy online shopping and cart management</li>
-        </ul>
-
-        <h2>Our Commitment</h2>
-        <p>
-          We are committed to providing a simple customer experience and
-          helping every customer find plants that suit their space and needs.
-        </p>
-      </section>
-    </main>
+      <p className="about-us-content">
+        Join us in making the world a greener, healthier place—one plant at a time!
+      </p>
+    </div>
   );
-};
+}
 
 export default AboutUs;
